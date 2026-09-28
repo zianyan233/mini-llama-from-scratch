@@ -1,6 +1,6 @@
 # Mini-Llama-From-Scratch 🦙
 
-A lightweight, educational Transformer inference engine built from scratch in **Modern C++23** without third-party deep learning frameworks.
+A lightweight, educational Transformer inference engine built from scratch in **Modern C++20** without third-party deep learning frameworks.
 
 ---
 
@@ -8,7 +8,7 @@ A lightweight, educational Transformer inference engine built from scratch in **
 
 - **Zero Heavy Frameworks**: No PyTorch, no ONNX, no external BLAS. Everything written from raw memory basics.
 - **Physical Memory Model**: All tensors are stored in contiguous 1D memory buffers (Row-Major Order) with zero-cost reshape/transposition abstractions.
-- **Modern C++23**: Powered by CMake, `<algorithm>`, C++23 Ranges (`std::ranges::max`), and type-safe reference semantics.
+- **Modern C++20**: Powered by CMake, `<algorithm>`, C++20 Ranges (`std::ranges::max`), and type-safe reference semantics.
 
 ---
 
