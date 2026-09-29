@@ -1,6 +1,6 @@
 # Mini-Llama-From-Scratch 🦙
 
-A lightweight, educational Transformer inference engine built from scratch in **Modern C++20** without third-party deep learning frameworks.
+A lightweight, educational Transformer inference engine built from scratch in **C++20** without third-party deep learning frameworks.
 
 ---
 
