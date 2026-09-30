@@ -8,7 +8,7 @@ A lightweight, educational Transformer inference engine built from scratch in **
 
 - **Zero Heavy Frameworks**: No PyTorch, no ONNX, no external BLAS. Everything written from raw memory basics.
 - **Physical Memory Model**: All tensors are stored in contiguous 1D memory buffers (Row-Major Order) with cache-friendly layout.
-- **Modern C++20**: Powered by CMake, `<algorithm>`, C++20 Ranges (`std::ranges::fill`, `std::ranges::max`), and type-safe reference semantics.
+- **C++20**: Powered by CMake, `<algorithm>`, C++20 Ranges (`std::ranges::fill`, `std::ranges::max`), and type-safe reference semantics.
 
 ---
 
