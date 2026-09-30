@@ -4,14 +4,23 @@
 #include <iostream>
 #include <algorithm>
 
+/**
+ * @file main.cpp
+ * @brief mini-llama 验证与测试主入口
+ * 
+ * 验证目标：
+ * 1. 验证多头 Transformer Block 在 C++20 工程架构下的数值正确性
+ * 2. 验证 KV-Cache 在自回归连续多步 (pos = 0, pos = 1) 过程中的记忆累积能力
+ */
 int main() {
-    size_t d = 4;
-    size_t d_ffn = 6;
+    size_t d = 4;         // 隐藏层维度 dim = 4
+    size_t d_ffn = 6;     // FFN 升维维度 d_ffn = 6
+    size_t max_seq = 256; // 最大上下文窗口容量 256
 
-    // 1. 输入数据 x: 1 行 4 列 (使用 C++20 统一初始化列表构造函数)
-    Tensor x(1, d, { 1.0f, 0.0f, 1.0f, 0.0f });
+    // 1. 初始化属于本层的持久记忆库：KV-Cache (预分配连续内存)
+    KVCache cache(max_seq, d);
 
-    // 2. 构造装满 9 个权重的结构体 (C++20 风格)
+    // 2. 构造装满 9 个权重的结构体 (使用 C++20 指定初始化器语法)
     TransformerBlockWeights w{
         .attn_norm_w = Tensor(1, d),
         .w_q = Tensor(d, d),
@@ -24,11 +33,11 @@ int main() {
         .w_down = Tensor(d_ffn, d)
     };
 
-    // 归一化权重初始化为 1.0f (标准比例)
+    // 归一化权重初始化为 1.0f (标准比例缩放)
     std::ranges::fill(w.attn_norm_w.data, 1.0f);
     std::ranges::fill(w.ffn_norm_w.data, 1.0f);
 
-    // Q, K, V, O 设为单位矩阵 (使用优雅的 operator() 索引)
+    // Q, K, V, O 设为单位矩阵 (使用优雅的 operator() 二维索引访问)
     for (size_t i = 0; i < d; i++) {
         w.w_q(i, i) = 1.0f;
         w.w_k(i, i) = 1.0f;
@@ -41,16 +50,29 @@ int main() {
     std::ranges::fill(w.w_up.data, 0.1f);
     std::ranges::fill(w.w_down.data, 0.1f);
 
-    // 🔥 点火！执行多头 Transformer Block (pos = 0, n_heads = 2)
-    transformer_block(x, 0, w, 2);
+    // =============================================================
+    // 🔥 第一步：输入第 0 个词 (pos = 0)
+    // =============================================================
+    Tensor x0(1, d, { 1.0f, 0.0f, 1.0f, 0.0f });
+    transformer_block(x0, 0, w, cache, 2);
 
-    // 打印最终输出
-    std::cout << "--- Transformer Block Output ---" << std::endl;
-    for (float val : x.data) {
+    std::cout << "--- [Step 0] Token 0 Output ---" << std::endl;
+    for (float val : x0.data) {
+        std::cout << val << " ";
+    }
+    std::cout << std::endl;
+
+    // =============================================================
+    // 🔥 第二步：输入第 1 个词 (pos = 1)，见证它调用第 0 步的 KV-Cache！
+    // =============================================================
+    Tensor x1(1, d, { 0.5f, 1.0f, 0.5f, 1.0f });
+    transformer_block(x1, 1, w, cache, 2);
+
+    std::cout << "--- [Step 1] Token 1 Output (With KV-Cache) ---" << std::endl;
+    for (float val : x1.data) {
         std::cout << val << " ";
     }
     std::cout << std::endl;
 
     return 0;
 }
-
