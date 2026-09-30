@@ -89,6 +89,23 @@ void attention(const Tensor& q, const Tensor& k, const Tensor& v, Tensor& output
         score *= scale;
     }
 
+    // -------------------------------------------------------------
+    // 因果掩码 (Causal Mask)：
+    // 当提问有多个词 (q.rows > 1) 时（如 Prefill 预填充消化 Prompt 阶段），
+    // 必须防止前面的词偷看后面的词（防止剧透 / 时空穿越）。
+    // 将所有未来时间步 (j > i) 的打分强行覆盖为负无穷 (-1e9f)，
+    // 这样经过 Softmax 指数运算后，exp(-1e9) ≈ 0，未来词的注意力权重变为绝对的 0%！
+    // -------------------------------------------------------------
+    if (q.rows > 1) {
+        for (size_t i = 0; i < q.rows; i++) {
+            for (size_t j = 0; j < k.rows; j++) {
+                if (j > i) {
+                    scores(i, j) = -1e9f;
+                }
+            }
+        }
+    }
+
     softmax(scores);
     matmul(scores, v, output);
 }
